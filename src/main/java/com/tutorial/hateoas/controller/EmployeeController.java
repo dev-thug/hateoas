@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
@@ -42,6 +44,33 @@ public class EmployeeController {
         Employee employee = repository.findById(id).orElseThrow(EntityNotFoundException::new);
 
         return assembler.toModel(employee);
+    }
+
+    @PutMapping("/employees/{id}")
+    ResponseEntity<?> replaceEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
+        Employee updatedEmployee = repository.findById(id)
+                .map(employee -> {
+                    employee.setName(newEmployee.getName());
+                    employee.setRole(newEmployee.getRole());
+                    return repository.save(newEmployee);
+                })
+                .orElseGet(() -> {
+                    newEmployee.setId(id);
+                    return repository.save(newEmployee);
+                });
+
+        EntityModel<Employee> entityModel = assembler.toModel(updatedEmployee);
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    }
+
+    @DeleteMapping("/employees/{id}")
+    ResponseEntity<?> deleteEmployee(@PathVariable Long id) {
+        repository.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
 
