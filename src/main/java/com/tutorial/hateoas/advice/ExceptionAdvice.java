@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @ControllerAdvice
-public class EmployeeNotFoundAdvice {
+public class ExceptionAdvice {
 
     @ResponseBody
     @ExceptionHandler(EmployeeNotFoundException.class)
